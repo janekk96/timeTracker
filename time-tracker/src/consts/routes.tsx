@@ -6,11 +6,18 @@ export enum Role {
   User = "User",
 }
 
+export interface ValidatorParams {
+  userRole: Role;
+  loggedUid: string;
+  selectedUid: string;
+}
+
 export interface RouteType {
   name: string;
   path: string;
   element: React.ReactNode;
   roles: Role[];
+  validator?: (params: ValidatorParams) => boolean;
 }
 
 export const ROUTES: RouteType[] = [
@@ -25,5 +32,8 @@ export const ROUTES: RouteType[] = [
     path: "/:uid",
     element: <User />,
     roles: [Role.User, Role.Admin],
+    validator: ({ userRole, loggedUid, selectedUid }) => {
+      return userRole === "Admin" || loggedUid === selectedUid;
+    },
   },
 ];
