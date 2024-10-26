@@ -1,6 +1,4 @@
-import AuthElement from "../components/AuthElement/AuthElement";
 import Home from "../Pages/Home";
-import Login from "../Pages/Login";
 import User from "../Pages/User";
 
 export enum Role {
@@ -24,10 +22,5 @@ export const ROUTES: RouteType[] = [
     name: "User",
     path: "/user/:uid",
     element: <User />,
-  },
-  {
-    name: "Logout",
-    path: "/logout",
-    element: <>logout</>,
   },
 ];

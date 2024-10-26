@@ -33,7 +33,7 @@ const ExportTableToExcel = ({
   };
 
   return (
-    <Button onClick={exportToExcel}>
+    <Button onClick={exportToExcel} className="mt-auto">
       <FontAwesomeIcon icon={faDownload} />
     </Button>
   );

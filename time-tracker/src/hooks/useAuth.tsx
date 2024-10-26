@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../consts/supabase";
+import { Session } from "@supabase/supabase-js";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 function useAuth() {
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState();
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -25,14 +33,13 @@ function useAuth() {
       supabase
         .from("profiles")
         .select()
-        .eq("id", user.id)
+        .eq("id", user?.id)
         .single()
         .then(({ data }) => {
           setUser({ ...user, ...data });
         });
     });
   }, [session]);
-
   return { session, user };
 }
 

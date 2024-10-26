@@ -1,66 +1,129 @@
-import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../AuthProvider";
-import { Button, Card } from "react-bootstrap";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Button, ButtonGroup, Card } from "react-bootstrap";
 
-import "./styles/home.css";
-import AddUserDialog from "../components/AddUserDialog/AddUserDialog";
+import styles from "./styles/Home.module.css";
 import PageWrapper from "../Design/PageWrapper/PageWrapper";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowRightFromBracket,
-  faPlus,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "../consts/supabase";
+import { useNavigate } from "react-router-dom";
 
-function UserList() {
-  const nav = useNavigate();
-  const [users, setUsers] = useState([]);
+export interface UserProfile {
+  id: string;
+  full_name: string;
+  username: string;
+  role: string;
+  is_approved: boolean;
+}
+
+export interface UserListProps {
+  filter: ProfileFilter;
+  setUnverifiedCount: (count: number) => void;
+}
+
+function UserList({ filter, setUnverifiedCount }: UserListProps) {
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    fetch("http://localhost:8000/users")
-      .then((response) => response.json())
-      .then((json) => setUsers(json));
+    const fetchProfiles = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) {
+        console.error("Error fetching profiles:", error);
+      } else {
+        setProfiles(data);
+      }
+      setLoading(false);
+    };
+    fetchProfiles();
   }, []);
+
+  useEffect(() => {
+    const unverifiedCount =
+      profiles.filter(PROFILE_FILTERS_CALLBACKS.notVerified.callback).length ||
+      0;
+    setUnverifiedCount(unverifiedCount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profiles]);
+
+  if (loading) return <p>Loading profiles...</p>;
+
   return (
-    <div className="d-flex p-2 cards" style={{ gap: "10px" }}>
-      {users.map((user) => (
+    <div className={styles.cards}>
+      {profiles.filter(filter.callback).map((profile) => (
         <Card
-          // onClick={() => nav(`/user/${user.id}`)}
-          // key={`usercard${user.id}`}
-          className="user-card"
+          key={profile.id}
+          className={styles.userCard}
+          onClick={() => navigate(`user/${profile.id}`)}
         >
-          <img
-            src="https://th.bing.com/th/id/OIP.cS-Y_XOsZXTltLGPmuEbfgHaGJ?rs=1&pid=ImgDetMain"
-            alt="avatar"
-          />
-          {/* <div>{user.username}</div> */}
-          {/* <div>{user.create_at}</div> */}
+          <Card.Body className="text-center">
+            <Card.Title className={styles.userFullName}>
+              {profile.full_name}
+            </Card.Title>
+            <Card.Subtitle className={styles.userName}>
+              {profile.username}
+            </Card.Subtitle>
+            <Card.Text className={styles.userRole}>
+              Rola: {profile.role}
+            </Card.Text>
+          </Card.Body>
         </Card>
       ))}
     </div>
   );
 }
 
+type ProfileFilterKey = "all" | "verified" | "notVerified";
+interface ProfileFilter {
+  label: (a?: number) => string;
+  callback: (profile: UserProfile) => boolean;
+}
+
+const PROFILE_FILTERS_CALLBACKS: Record<ProfileFilterKey, ProfileFilter> = {
+  all: {
+    label: () => "Wszyscy",
+    callback: () => true,
+  },
+  verified: {
+    label: () => "Zatwierdzeni",
+    callback: (profile: UserProfile) => profile.is_approved,
+  },
+  notVerified: {
+    label: (a?: number) => `Niezatwierdzeni ${a}`,
+    callback: (profile: UserProfile) => !profile.is_approved,
+  },
+};
 function Home() {
-  const [showAddUser, setShowAddUser] = useState(false);
+  const [profileFilter, setProfileFilter] = useState<ProfileFilterKey>("all");
+  const [unverifiedCount, setUnverifiedCount] = useState(0);
   return (
     <PageWrapper>
-      <div className="home-wrapper">
-        <AddUserDialog
-          show={showAddUser}
-          onHide={() => setShowAddUser(false)}
+      <div className={styles.homeWrapper}>
+        <h1>Lista Użytkowników</h1>
+        <ButtonGroup>
+          {Object.entries(PROFILE_FILTERS_CALLBACKS).map(([key, value]) => (
+            <Button
+              key={key}
+              onClick={() => setProfileFilter(key as ProfileFilterKey)}
+              variant={`outline-secondary ${key === profileFilter && "active"}`}
+              size="sm"
+            >
+              {value.label(unverifiedCount)}
+            </Button>
+          ))}
+        </ButtonGroup>
+        <UserList
+          filter={PROFILE_FILTERS_CALLBACKS[profileFilter]}
+          setUnverifiedCount={setUnverifiedCount}
         />
-        <h1>Users list</h1>
-        <Button onClick={() => setShowAddUser((prev) => !prev)}>
-          <FontAwesomeIcon icon={faPlus} /> Add User
-        </Button>
-        <UserList />
         <Button
           variant="warning"
           className="mt-auto"
           onClick={() => supabase.auth.signOut()}
         >
-          <FontAwesomeIcon icon={faArrowRightFromBracket} /> Logout
+          <FontAwesomeIcon icon={faArrowRightFromBracket} /> Wyloguj
         </Button>
       </div>
     </PageWrapper>
