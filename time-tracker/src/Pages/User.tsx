@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { Button, Card, Table } from "react-bootstrap";
+import { useEffect, useState, useMemo, useContext } from "react";
+import { Button, Card, Spinner, Table } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import AddTimeEntryDialog from "../components/AddTimeEntryDialog/AddTimeEntryDialog";
 
@@ -20,7 +20,8 @@ import ExportTableToExcel from "../Utils/ExportTableToExcel";
 import FilterEntriesDialog from "../components/FilterEntriesDialog/FilterEntriesDialog";
 import { PREDEFINED_FILTERS } from "../consts/WorkTimeFilters";
 import moment from "moment";
-import useAuth from "../hooks/useAuth";
+import { AuthContext } from "../contexts/AuthContext";
+import { AuthUser } from "../contexts/AuthContext";
 
 export interface TimeEntryType {
   type: string;
@@ -42,14 +43,25 @@ export interface Filter {
   types: number[];
 }
 
+const getDuration = (entry: TimeEntry) => {
+  const minutes = getDurationInMinutes(entry);
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+};
+
+const getDurationInMinutes = (entry: TimeEntry) => {
+  const start = new Date(entry.start);
+  const end = new Date(entry.end);
+  const diff = end.getTime() - start.getTime();
+  return Math.floor(diff / 60000);
+};
+
 function User() {
   const { uid } = useParams();
-  const { user: authUser } = useAuth();
+  const { user: authUser } = useContext(AuthContext) || {};
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [workTime, setWorkTime] = useState<TimeEntry[]>([]);
   const [loadingWorkTime, setLoadingWorkTime] = useState(true);
-  const navigate = useNavigate();
   const [filters, setFilters] = useState<Filter>(() => {
     return {
       from: moment(PREDEFINED_FILTERS.thisMonth.startDate()).format(
@@ -130,18 +142,6 @@ function User() {
     return new Date(time).toLocaleString();
   };
 
-  const getDuration = (entry: TimeEntry) => {
-    const minutes = getDurationInMinutes(entry);
-    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-  };
-
-  const getDurationInMinutes = (entry: TimeEntry) => {
-    const start = new Date(entry.start);
-    const end = new Date(entry.end);
-    const diff = end.getTime() - start.getTime();
-    return Math.floor(diff / 60000);
-  };
-
   const totalDuration = useMemo(() => {
     return workTime.reduce(
       (acc, entry) => acc + getDurationInMinutes(entry),
@@ -149,142 +149,204 @@ function User() {
     );
   }, [workTime]);
 
-  if (!user) return <div>Loading...</div>;
-
-  const tableData = workTime.map((entry) => ({
-    start: getTimeFormatted(entry.start),
-    end: getTimeFormatted(entry.end),
-    duration: getDuration(entry),
-  }));
+  const tableData =
+    workTime &&
+    workTime.map((entry) => ({
+      start: getTimeFormatted(entry.start),
+      end: getTimeFormatted(entry.end),
+      duration: getDuration(entry),
+    }));
   tableData.push({
     start: "Total",
     end: "",
     duration: `${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`,
   });
 
-  if (loadingProfile) return <div>Loading...</div>;
   return (
     <PageWrapper>
-      {authUser?.role === "Admin" || user.is_approved ? (
+      <AddTimeEntryDialog
+        show={addEntryShow}
+        onHide={() => setAddEntryShow(false)}
+      />
+      <FilterEntriesDialog
+        show={filteringDialogShow}
+        onHide={() => setFilteringDialogShow(false)}
+        activeFilters={filters}
+        applyFilters={setFilters}
+      />
+      {authUser?.role === "Admin" || user?.is_approved ? (
         <div className="user-wrapper">
-          <div className="top-bar">
-            <div className="d-flex gap-1">
-              <Button
-                variant="success"
-                onClick={() => setAddEntryShow((prev) => !prev)}
-              >
-                <FontAwesomeIcon icon={faPlus} />
-              </Button>
-              <Button
-                variant="success"
-                onClick={() => setFilteringDialogShow(true)}
-              >
-                <FontAwesomeIcon icon={faFilter} />
-              </Button>
-            </div>
-            {authUser?.role === "Admin" && (
-              <Button variant="secondary" onClick={() => navigate("/")}>
-                <FontAwesomeIcon icon={faArrowLeft} />
-              </Button>
-            )}
-            {authUser?.role === "User" && (
-              <Button variant="warning" onClick={() => supabase.auth.signOut()}>
-                <FontAwesomeIcon icon={faRightFromBracket} />
-              </Button>
-            )}
-          </div>
-          <AddTimeEntryDialog
-            show={addEntryShow}
-            onHide={() => setAddEntryShow(false)}
+          <TopBar
+            setAddEntryShow={setAddEntryShow}
+            setFilteringDialogShow={setFilteringDialogShow}
           />
-          <FilterEntriesDialog
-            show={filteringDialogShow}
-            onHide={() => setFilteringDialogShow(false)}
-            activeFilters={filters}
-            applyFilters={setFilters}
-          />
-          <h1 className="d-flex align-items-center gap-2">
-            {user?.full_name}
-            {!user?.is_approved && (
-              <FontAwesomeIcon
-                title="Użytkownik nie został jeszcze zaakceptowany przez administratora i nie może dodawać wpisów czasu pracy"
-                icon={faExclamationCircle}
-                style={{ color: "red" }}
-              />
-            )}
-          </h1>
-          {authUser?.role === "Admin" && !user?.is_approved && (
-            <Button
-              className="mb-2 d-flex align-items-center gap-1 justify-content-center"
-              variant="success"
-              onClick={handleUserApproval}
-            >
-              <FontAwesomeIcon icon={faCheck} />
-              Zatwierdź użytkownika
-            </Button>
-          )}
-          {loadingWorkTime ? (
-            <p>Loading...</p>
+
+          {loadingProfile ? (
+            <Spinner animation="border" />
           ) : (
-            <div className="table-wrapper">
-              <Table striped bordered hover className="user-table">
-                <thead>
-                  <tr>
-                    <th>Dzień</th>
-                    <th>Start</th>
-                    <th>Koniec</th>
-                    <th>Czas trwania</th>
-                    <th>Typ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {workTime.map((entry) => (
-                    <tr key={`work_entry_${entry.id}`}>
-                      <td>{moment(entry.start).format("DD-MM-YYYY")}</td>
-                      <td>{moment(entry.start).format("HH:mm")}</td>
-                      <td>{moment(entry.end).format("HH:mm")}</td>
-                      <td>{getDuration(entry)}</td>
-                      <td>{entry.workhours_entry_type.type}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={4}>Łącznie</td>
-                    <td>
-                      {`${Math.floor(totalDuration / 60)}h ${
-                        totalDuration % 60
-                      }m`}
-                    </td>
-                  </tr>
-                </tfoot>
-              </Table>
-            </div>
+            <UserHeader
+              authUser={authUser}
+              handleUserApproval={handleUserApproval}
+              user={user}
+            />
           )}
-          <ExportTableToExcel tableData={tableData} fileName={user.username} />
+          <HoursTable
+            workTime={workTime}
+            totalDuration={totalDuration}
+            workTimeLoading={loadingWorkTime}
+          />
+          <ExportTableToExcel
+            tableData={tableData}
+            fileName={user?.username || ""}
+          />
         </div>
       ) : (
-        <Card>
-          <Card.Body>
-            <div className="d-flex flex-column flex-wrap justify-content-center align-items-center">
-              <h1>Użytkownik nie został jeszcze zaakceptowany</h1>
-              <p>
-                Użytkownik musi zostać zaakceptowany przez administratora, aby
-                móc dodawać wpisy czasu pracy. Prosimy o cierpliwość.
-              </p>
-              <Button
-                onClick={() => supabase.auth.signOut()}
-                className="d-flex align-items-center gap-1"
-              >
-                <FontAwesomeIcon icon={faRightFromBracket} />
-                Wyloguj
-              </Button>
-            </div>
-          </Card.Body>
-        </Card>
+        <NotVerifiedUser />
       )}
     </PageWrapper>
   );
 }
 
 export default User;
+
+interface TopBarProps {
+  setAddEntryShow: React.Dispatch<React.SetStateAction<boolean>>;
+  setFilteringDialogShow: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function TopBar({ setAddEntryShow, setFilteringDialogShow }: TopBarProps) {
+  const { user } = useContext(AuthContext) || {};
+  const navigate = useNavigate();
+  return (
+    <div className="top-bar">
+      <div className="d-flex gap-1">
+        <Button
+          variant="success"
+          onClick={() => setAddEntryShow((prev) => !prev)}
+        >
+          <FontAwesomeIcon icon={faPlus} />
+        </Button>
+        <Button variant="success" onClick={() => setFilteringDialogShow(true)}>
+          <FontAwesomeIcon icon={faFilter} />
+        </Button>
+      </div>
+      {user?.role === "Admin" && (
+        <Button variant="secondary" onClick={() => navigate("/")}>
+          <FontAwesomeIcon icon={faArrowLeft} />
+        </Button>
+      )}
+      {user?.role === "User" && (
+        <Button variant="warning" onClick={() => supabase.auth.signOut()}>
+          <FontAwesomeIcon icon={faRightFromBracket} />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+interface HoursTableProps {
+  workTime: TimeEntry[];
+  totalDuration: number;
+  workTimeLoading: boolean;
+}
+
+function HoursTable({
+  workTime,
+  totalDuration,
+  workTimeLoading,
+}: HoursTableProps) {
+  return (
+    <div className="table-wrapper">
+      <Table striped bordered hover className="user-table">
+        <thead>
+          <tr>
+            <th>Dzień</th>
+            <th>Start</th>
+            <th>Koniec</th>
+            <th>Czas trwania</th>
+            <th>Typ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {workTimeLoading ? (
+            <Spinner animation="border" />
+          ) : (
+            workTime.map((entry) => (
+              <tr key={`work_entry_${entry.id}`}>
+                <td>{moment(entry.start).format("DD-MM-YYYY")}</td>
+                <td>{moment(entry.start).format("HH:mm")}</td>
+                <td>{moment(entry.end).format("HH:mm")}</td>
+                <td>{getDuration(entry)}</td>
+                <td>{entry.workhours_entry_type.type}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colSpan={4}>Łącznie</td>
+            <td>
+              {`${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`}
+            </td>
+          </tr>
+        </tfoot>
+      </Table>
+    </div>
+  );
+}
+
+interface UserHeaderProps {
+  authUser: AuthUser | null | undefined;
+  handleUserApproval: () => Promise<void>;
+  user: UserProfile | null;
+}
+
+function UserHeader({ authUser, handleUserApproval, user }: UserHeaderProps) {
+  return (
+    <>
+      <h1 className="d-flex align-items-center gap-2">
+        {user?.full_name}
+        {!user?.is_approved && (
+          <FontAwesomeIcon
+            title="Użytkownik nie został jeszcze zaakceptowany przez administratora i nie może dodawać wpisów czasu pracy"
+            icon={faExclamationCircle}
+            style={{ color: "red" }}
+          />
+        )}
+      </h1>
+      {authUser?.role === "Admin" && !user?.is_approved && (
+        <Button
+          className="mb-2 d-flex align-items-center gap-1 justify-content-center"
+          variant="success"
+          onClick={handleUserApproval}
+        >
+          <FontAwesomeIcon icon={faCheck} />
+          Zatwierdź użytkownika
+        </Button>
+      )}
+    </>
+  );
+}
+
+function NotVerifiedUser() {
+  return (
+    <Card>
+      <Card.Body>
+        <div className="d-flex flex-column flex-wrap justify-content-center align-items-center">
+          <h1>Użytkownik nie został jeszcze zaakceptowany</h1>
+          <p>
+            Użytkownik musi zostać zaakceptowany przez administratora, aby móc
+            dodawać wpisy czasu pracy. Prosimy o cierpliwość.
+          </p>
+          <Button
+            onClick={() => supabase.auth.signOut()}
+            className="d-flex align-items-center gap-1"
+          >
+            <FontAwesomeIcon icon={faRightFromBracket} />
+            Wyloguj
+          </Button>
+        </div>
+      </Card.Body>
+    </Card>
+  );
+}

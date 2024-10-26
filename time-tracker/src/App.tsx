@@ -1,24 +1,13 @@
-import {
-  Route,
-  BrowserRouter as Router,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { ROUTES } from "./consts/routes";
-import useAuth from "./hooks/useAuth";
 import Login from "./Pages/Login";
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import { supabase } from "./consts/supabase";
+import { AuthContext, AuthUser } from "./contexts/AuthContext";
+import { Session } from "@supabase/supabase-js";
 
 function RouterRoutes() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user?.role === "User") {
-      navigate(`/user/${user?.id}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  const { user } = useContext(AuthContext) || {};
 
   if (!user) return <div>Loading ...</div>;
   return (
@@ -31,12 +20,51 @@ function RouterRoutes() {
 }
 
 function App() {
-  const { session } = useAuth();
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const { user } = data;
+      supabase
+        .from("profiles")
+        .select()
+        .eq("id", user?.id)
+        .single()
+        .then(({ data }) => {
+          setUser({ ...user, ...data });
+        });
+    });
+  }, [session]);
+
   if (!session) return <Login />;
   return (
-    <Router>
-      <RouterRoutes />
-    </Router>
+    <AuthContext.Provider
+      value={{
+        session: session,
+        user: user,
+        setSession: setSession,
+        setUser: setUser,
+      }}
+    >
+      <Router>
+        <RouterRoutes />
+      </Router>
+    </AuthContext.Provider>
   );
 }
 
