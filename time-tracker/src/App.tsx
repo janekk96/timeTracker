@@ -12,10 +12,8 @@ import ProtectedElement from "./components/ProtectedElement/ProtectedElement";
 function RouterRoutes() {
   const { user } = useContext(AuthContext) || {};
   const navigate = useNavigate();
-  if (!user) return <div>Loading ...</div>;
-  console.log(user);
-  if (user.role === "User") {
-    navigate(`/${user.id}`);
+  if (user?.role === "User") {
+    navigate(`/${user?.id}`);
   }
   return (
     <Routes>
