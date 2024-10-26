@@ -47,7 +47,6 @@ function AddTimeEntryDialog({ show, onHide }: AddTimeEntryDialogProps) {
       alert("Wystąpił błąd podczas dodawania wpisu");
       return false;
     }
-    alert("Dodano wpis");
     return true;
   };
 
