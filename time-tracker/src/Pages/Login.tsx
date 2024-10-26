@@ -89,10 +89,19 @@ function Login() {
             supabaseClient={supabase}
             appearance={{ theme: ThemeSupa }}
             showLinks={false}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: "Email",
+                  password_label: "Hasło",
+                  button_label: "Zaloguj",
+                },
+              },
+            }}
           />
         )}
         {activeView === Views.REGISTER && (
-          <div>
+          <div className="d-flex flex-column gap-2">
             <div className="form-group">
               <label htmlFor="username">Imię</label>
               <input
