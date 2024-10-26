@@ -1,19 +1,34 @@
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes } from "react-router-dom";
 import { ROUTES } from "./consts/routes";
 import Login from "./Pages/Login";
 import { useContext, useEffect, useState } from "react";
 import { supabase } from "./consts/supabase";
 import { AuthContext, AuthUser } from "./contexts/AuthContext";
 import { Session } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
+import { Route } from "react-router-dom";
+import ProtectedElement from "./components/ProtectedElement/ProtectedElement";
 
 function RouterRoutes() {
   const { user } = useContext(AuthContext) || {};
-
+  const navigate = useNavigate();
   if (!user) return <div>Loading ...</div>;
+  console.log(user);
+  if (user.role === "User") {
+    navigate(`/${user.id}`);
+  }
   return (
     <Routes>
       {ROUTES.map((route) => (
-        <Route key={route.name} path={route.path} element={route.element} />
+        <Route
+          key={route.name}
+          path={route.path}
+          element={
+            <ProtectedElement roles={route.roles}>
+              {route.element}
+            </ProtectedElement>
+          }
+        />
       ))}
     </Routes>
   );

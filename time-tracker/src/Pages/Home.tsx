@@ -56,7 +56,7 @@ function UserList({ filter, setUnverifiedCount }: UserListProps) {
         <Card
           key={profile.id}
           className={styles.userCard}
-          onClick={() => navigate(`user/${profile.id}`)}
+          onClick={() => navigate(`/${profile.id}`)}
         >
           <Card.Body className="text-center">
             <Card.Title className={styles.userFullName}>

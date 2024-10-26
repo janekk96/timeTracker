@@ -174,7 +174,11 @@ function User() {
         activeFilters={filters}
         applyFilters={setFilters}
       />
-      {authUser?.role === "Admin" || user?.is_approved ? (
+      {(loadingProfile ? (
+        <Spinner animation="border" />
+      ) : (
+        authUser?.role === "Admin"
+      )) || user?.is_approved ? (
         <div className="user-wrapper">
           <TopBar
             setAddEntryShow={setAddEntryShow}

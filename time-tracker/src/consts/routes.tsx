@@ -10,6 +10,7 @@ export interface RouteType {
   name: string;
   path: string;
   element: React.ReactNode;
+  roles: Role[];
 }
 
 export const ROUTES: RouteType[] = [
@@ -17,10 +18,12 @@ export const ROUTES: RouteType[] = [
     name: "Home",
     path: "/",
     element: <Home />,
+    roles: [Role.Admin],
   },
   {
     name: "User",
-    path: "/user/:uid",
+    path: "/:uid",
     element: <User />,
+    roles: [Role.User, Role.Admin],
   },
 ];
