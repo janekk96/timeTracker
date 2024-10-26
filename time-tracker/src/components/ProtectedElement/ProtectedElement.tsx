@@ -14,8 +14,6 @@ function ProtectedElement({ children, roles }: ProtectedElementProps) {
   if (!user) {
     toRender = loading;
   }
-  console.log("user", user);
-  console.log("roles", roles);
   if (user && !roles.includes(user.role)) {
     toRender = unauthorized;
   }

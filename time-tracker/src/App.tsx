@@ -12,11 +12,12 @@ import ProtectedElement from "./components/ProtectedElement/ProtectedElement";
 function RouterRoutes() {
   const { user } = useContext(AuthContext) || {};
   const navigate = useNavigate();
-  if (!user) return <div>Loading ...</div>;
-  console.log(user);
-  if (user.role === "User") {
-    navigate(`/${user.id}`);
-  }
+
+  useEffect(() => {
+    if (user?.role === "User") {
+      navigate(`/${user?.id}`);
+    }
+  }, [user, navigate]);
   return (
     <Routes>
       {ROUTES.map((route) => (
