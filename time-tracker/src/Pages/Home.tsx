@@ -102,7 +102,7 @@ function Home() {
     <PageWrapper>
       <div className={styles.homeWrapper}>
         <h1>Lista Użytkowników</h1>
-        <ButtonGroup>
+        <ButtonGroup className="w-100">
           {Object.entries(PROFILE_FILTERS_CALLBACKS).map(([key, value]) => (
             <Button
               key={key}
@@ -118,11 +118,7 @@ function Home() {
           filter={PROFILE_FILTERS_CALLBACKS[profileFilter]}
           setUnverifiedCount={setUnverifiedCount}
         />
-        <Button
-          variant="warning"
-          className="mt-auto"
-          onClick={() => supabase.auth.signOut()}
-        >
+        <Button variant="warning" onClick={() => supabase.auth.signOut()}>
           <FontAwesomeIcon icon={faArrowRightFromBracket} /> Wyloguj
         </Button>
       </div>
