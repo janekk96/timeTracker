@@ -73,6 +73,10 @@ function EditTimeEntryDialog({
     }
   };
   const handleDelete = async () => {
+    const shouldDelete = window.confirm("Czy na pewno chcesz usunąć ten wpis?");
+    if (!shouldDelete) {
+      return;
+    }
     const { error } = await supabase.from("workhours").delete().eq("id", id);
     if (error) {
       console.error("Error deleting entry:", error);
