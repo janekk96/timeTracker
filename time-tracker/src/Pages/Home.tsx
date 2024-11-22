@@ -118,7 +118,11 @@ function Home() {
           filter={PROFILE_FILTERS_CALLBACKS[profileFilter]}
           setUnverifiedCount={setUnverifiedCount}
         />
-        <Button variant="warning" onClick={() => supabase.auth.signOut()}>
+        <Button
+          className="mt-2"
+          variant="warning"
+          onClick={() => supabase.auth.signOut()}
+        >
           <FontAwesomeIcon icon={faArrowRightFromBracket} /> Wyloguj
         </Button>
       </div>
