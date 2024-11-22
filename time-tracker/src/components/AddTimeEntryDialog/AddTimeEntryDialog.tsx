@@ -11,7 +11,7 @@ export interface AddTimeEntryDialogProps {
   onHide: () => void;
 }
 
-const TimeEntryTypes: { [key: number]: string } = {
+export const TimeEntryTypes: { [key: number]: string } = {
   1: "Prace standardowe",
   2: "Prace naprawcze",
 };
@@ -59,7 +59,7 @@ function AddTimeEntryDialog({ show, onHide }: AddTimeEntryDialogProps) {
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Add Time Entry</Modal.Title>
+        <Modal.Title>Dodaj wpis</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="form-group">

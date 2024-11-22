@@ -59,3 +59,6 @@
 .table-wrapper table {
   min-width: 600px;
 }
+.adminRow :hover {
+  cursor: pointer;
+}
