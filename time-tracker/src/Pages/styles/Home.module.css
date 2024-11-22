@@ -60,6 +60,7 @@
   /* align-items: center; */
   margin: 5px;
   height: 72vh;
+  overflow: auto;
 }
 @media screen and (max-width: 768px) {
   .homeWrapper {

@@ -53,6 +53,7 @@
 
 .table-wrapper {
   overflow: auto;
+  max-height: 65vh;
   max-width: -webkit-fill-available;
 }
 .table-wrapper table {
