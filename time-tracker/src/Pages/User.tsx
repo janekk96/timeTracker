@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useContext } from "react";
+import { useEffect, useState, useMemo, useContext, createContext } from "react";
 import { Button, Card, Spinner, Table } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import AddTimeEntryDialog from "../components/AddTimeEntryDialog/AddTimeEntryDialog";
@@ -22,6 +22,7 @@ import { PREDEFINED_FILTERS } from "../consts/WorkTimeFilters";
 import moment from "moment";
 import { AuthContext } from "../contexts/AuthContext";
 import { AuthUser } from "../contexts/AuthContext";
+import EditTimeEntryDialog from "../components/EditTimeEntryDialog/EditTimeEntryDialog";
 
 export interface TimeEntryType {
   type: string;
@@ -43,12 +44,14 @@ export interface Filter {
   types: number[];
 }
 
-const getDuration = (entry: TimeEntry) => {
+const ReloadContext = createContext({ reload: () => {} });
+
+const getDuration = (entry: Pick<TimeEntry, "start" | "end">) => {
   const minutes = getDurationInMinutes(entry);
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 };
 
-const getDurationInMinutes = (entry: TimeEntry) => {
+const getDurationInMinutes = (entry: Pick<TimeEntry, "start" | "end">) => {
   const start = new Date(entry.start);
   const end = new Date(entry.end);
   const diff = end.getTime() - start.getTime();
@@ -56,6 +59,7 @@ const getDurationInMinutes = (entry: TimeEntry) => {
 };
 
 function User() {
+  const [reloadCounter, setReloadCounter] = useState(0);
   const { uid } = useParams();
   const { user: authUser } = useContext(AuthContext) || {};
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -136,7 +140,7 @@ function User() {
       setLoadingWorkTime(false);
     };
     fetchWorkTime();
-  }, [uid, filterString, addEntryShow]);
+  }, [uid, filterString, addEntryShow, reloadCounter]);
 
   const getTimeFormatted = (time: string) => {
     return new Date(time).toLocaleString();
@@ -163,51 +167,55 @@ function User() {
   });
 
   return (
-    <PageWrapper>
-      <AddTimeEntryDialog
-        show={addEntryShow}
-        onHide={() => setAddEntryShow(false)}
-      />
-      <FilterEntriesDialog
-        show={filteringDialogShow}
-        onHide={() => setFilteringDialogShow(false)}
-        activeFilters={filters}
-        applyFilters={setFilters}
-      />
-      {(loadingProfile ? (
-        <Spinner animation="border" />
-      ) : (
-        authUser?.role === "Admin"
-      )) || user?.is_approved ? (
-        <div className="user-wrapper">
-          <TopBar
-            setAddEntryShow={setAddEntryShow}
-            setFilteringDialogShow={setFilteringDialogShow}
-          />
-
-          {loadingProfile ? (
-            <Spinner animation="border" />
-          ) : (
-            <UserHeader
-              authUser={authUser}
-              handleUserApproval={handleUserApproval}
-              user={user}
+    <ReloadContext.Provider
+      value={{ reload: () => setReloadCounter(reloadCounter + 1) }}
+    >
+      <PageWrapper>
+        <AddTimeEntryDialog
+          show={addEntryShow}
+          onHide={() => setAddEntryShow(false)}
+        />
+        <FilterEntriesDialog
+          show={filteringDialogShow}
+          onHide={() => setFilteringDialogShow(false)}
+          activeFilters={filters}
+          applyFilters={setFilters}
+        />
+        {(loadingProfile ? (
+          <Spinner animation="border" />
+        ) : (
+          authUser?.role === "Admin"
+        )) || user?.is_approved ? (
+          <div className="user-wrapper">
+            <TopBar
+              setAddEntryShow={setAddEntryShow}
+              setFilteringDialogShow={setFilteringDialogShow}
             />
-          )}
-          <HoursTable
-            workTime={workTime}
-            totalDuration={totalDuration}
-            workTimeLoading={loadingWorkTime}
-          />
-          <ExportTableToExcel
-            tableData={tableData}
-            fileName={user?.username || ""}
-          />
-        </div>
-      ) : (
-        <NotVerifiedUser />
-      )}
-    </PageWrapper>
+
+            {loadingProfile ? (
+              <Spinner animation="border" />
+            ) : (
+              <UserHeader
+                authUser={authUser}
+                handleUserApproval={handleUserApproval}
+                user={user}
+              />
+            )}
+            <HoursTable
+              workTime={workTime}
+              totalDuration={totalDuration}
+              workTimeLoading={loadingWorkTime}
+            />
+            <ExportTableToExcel
+              tableData={tableData}
+              fileName={user?.username || ""}
+            />
+          </div>
+        ) : (
+          <NotVerifiedUser />
+        )}
+      </PageWrapper>
+    </ReloadContext.Provider>
   );
 }
 
@@ -254,6 +262,46 @@ interface HoursTableProps {
   workTimeLoading: boolean;
 }
 
+function EntryRow({
+  id,
+  start,
+  end,
+  workhours_entry_type,
+}: Omit<TimeEntry, "uid">) {
+  const { reload } = useContext(ReloadContext);
+  const [editShown, setEditShown] = useState(false);
+  const { user } = useContext(AuthContext) || {};
+  const rowClass = user?.role === "Admin" ? "adminRow" : "";
+  const handleRowClick = () => {
+    if (user?.role === "Admin") {
+      setEditShown(true);
+    }
+  };
+  const handleClose = () => {
+    setEditShown(false);
+    reload();
+  };
+  return (
+    <>
+      <EditTimeEntryDialog
+        show={editShown}
+        onHide={handleClose}
+        id={parseInt(id)}
+        startTime={moment(start).toDate()}
+        endTime={moment(end).toDate()}
+        entrySelectedType={workhours_entry_type.id}
+      />
+      <tr className={rowClass} onClick={handleRowClick}>
+        <td>{moment(start).format("DD.MM.YYYY")}</td>
+        <td>{moment(start).format("HH:mm")}</td>
+        <td>{moment(end).format("HH:mm")}</td>
+        <td>{getDuration({ start, end })}</td>
+        <td>{workhours_entry_type.type}</td>
+      </tr>
+    </>
+  );
+}
+
 function HoursTable({
   workTime,
   totalDuration,
@@ -276,13 +324,14 @@ function HoursTable({
             <Spinner animation="border" />
           ) : (
             workTime.map((entry) => (
-              <tr key={`work_entry_${entry.id}`}>
-                <td>{moment(entry.start).format("DD-MM-YYYY")}</td>
-                <td>{moment(entry.start).format("HH:mm")}</td>
-                <td>{moment(entry.end).format("HH:mm")}</td>
-                <td>{getDuration(entry)}</td>
-                <td>{entry.workhours_entry_type.type}</td>
-              </tr>
+              <EntryRow
+                key={`work_entry_${entry.id}`}
+                id={entry.id}
+                created_at={entry.created_at}
+                end={entry.end}
+                start={entry.start}
+                workhours_entry_type={entry.workhours_entry_type}
+              />
             ))
           )}
         </tbody>
