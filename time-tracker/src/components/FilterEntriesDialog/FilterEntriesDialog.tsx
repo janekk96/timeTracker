@@ -32,7 +32,7 @@ function FilterEntriesDialog({
   const handleApplyFilters = () => {
     applyFilters({
       from: moment(startDate).format("YYYY-MM-DD"),
-      to: moment(endDate).format("YYYY-MM-DD"),
+      to: moment(endDate).add(1, "day").format("YYYY-MM-DD"),
       types: types,
     });
     onHide();
@@ -68,11 +68,21 @@ function FilterEntriesDialog({
         </div>
         <InputGroup className="mb-3">
           <InputGroup.Text id="basic-addon1">Od:</InputGroup.Text>
-          <input type="date" className="form-control" value={startDateStr} />
+          <input
+            type="date"
+            className="form-control"
+            value={startDateStr}
+            onChange={(e) => setStartDate(new Date(e.target.value))}
+          />
         </InputGroup>
         <InputGroup className="mb-3">
           <InputGroup.Text id="basic-addon1">Do:</InputGroup.Text>
-          <input type="date" className="form-control" value={endDateStr} />
+          <input
+            type="date"
+            className="form-control"
+            value={endDateStr}
+            onChange={(e) => setEndDate(new Date(e.target.value))}
+          />
         </InputGroup>
         <div className="pt-3">
           <h6>Typy wpisów</h6>
