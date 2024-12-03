@@ -71,7 +71,9 @@ function User() {
       from: moment(PREDEFINED_FILTERS.thisMonth.startDate()).format(
         "YYYY-MM-DD"
       ),
-      to: moment(PREDEFINED_FILTERS.thisMonth.endDate()).format("YYYY-MM-DD"),
+      to: moment(PREDEFINED_FILTERS.thisMonth.endDate())
+        .add(1, "day")
+        .format("YYYY-MM-DD"),
       types: [1, 2],
     };
   });
