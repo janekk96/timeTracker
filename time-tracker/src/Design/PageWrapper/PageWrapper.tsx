@@ -5,7 +5,11 @@ export interface PageWrapperProps {
 }
 
 function PageWrapper({ children }: PageWrapperProps) {
-  return <div className={styles.PageWrapper}>{children}</div>;
+  return (
+    <main id="main-content" className={styles.PageWrapper} role="main">
+      {children}
+    </main>
+  );
 }
 
 export default PageWrapper;

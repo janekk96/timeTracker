@@ -45,68 +45,90 @@ function FilterEntriesDialog({
     };
   }, [startDate, endDate]);
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} aria-labelledby="filter-modal-title">
       <Modal.Header closeButton>
-        <Modal.Title>Filtruj wpisy</Modal.Title>
+        <Modal.Title id="filter-modal-title">Filtruj wpisy</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <h6>Zakres dat</h6>
-        <div className="d-flex gap-1 pb-3 flex-wrap">
-          {Object.entries(PREDEFINED_FILTERS).map(([key, value]) => (
-            <Button
-              key={key}
-              variant="outline-primary"
-              size="sm"
-              onClick={() => {
-                setStartDate(value.startDate());
-                setEndDate(value.endDate());
-              }}
-            >
-              {value.label}
-            </Button>
-          ))}
-        </div>
-        <InputGroup className="mb-3">
-          <InputGroup.Text id="basic-addon1">Od:</InputGroup.Text>
-          <input
-            type="date"
-            className="form-control"
-            value={startDateStr}
-            onChange={(e) => setStartDate(new Date(e.target.value))}
-          />
-        </InputGroup>
-        <InputGroup className="mb-3">
-          <InputGroup.Text id="basic-addon1">Do:</InputGroup.Text>
-          <input
-            type="date"
-            className="form-control"
-            value={endDateStr}
-            onChange={(e) => setEndDate(new Date(e.target.value))}
-          />
-        </InputGroup>
-        <div className="pt-3">
-          <h6>Typy wpisów</h6>
+        <fieldset>
+          <legend>
+            <h2 className="h6">Zakres dat</h2>
+          </legend>
+          <div className="d-flex gap-1 pb-3 flex-wrap" role="group" aria-label="Predefiniowane zakresy dat">
+            {Object.entries(PREDEFINED_FILTERS).map(([key, value]) => (
+              <Button
+                key={key}
+                variant="outline-primary"
+                size="sm"
+                onClick={() => {
+                  setStartDate(value.startDate());
+                  setEndDate(value.endDate());
+                }}
+                aria-label={`Ustaw zakres: ${value.label}`}
+              >
+                {value.label}
+              </Button>
+            ))}
+          </div>
+          <InputGroup className="mb-3">
+            <InputGroup.Text as="label" htmlFor="filter-start-date" id="filter-start-label">Od:</InputGroup.Text>
+            <input
+              type="date"
+              className="form-control"
+              id="filter-start-date"
+              value={startDateStr}
+              onChange={(e) => setStartDate(new Date(e.target.value))}
+              aria-labelledby="filter-start-label"
+            />
+          </InputGroup>
+          <InputGroup className="mb-3">
+            <InputGroup.Text as="label" htmlFor="filter-end-date" id="filter-end-label">Do:</InputGroup.Text>
+            <input
+              type="date"
+              className="form-control"
+              id="filter-end-date"
+              value={endDateStr}
+              onChange={(e) => setEndDate(new Date(e.target.value))}
+              aria-labelledby="filter-end-label"
+            />
+          </InputGroup>
+        </fieldset>
+        <fieldset className="pt-3">
+          <legend>
+            <h2 className="h6">Typy wpisów</h2>
+          </legend>
           <div className="d-flex gap-1 pb-3 flex-wrap">
             <ToggleButtonGroup
               type="checkbox"
               value={types}
               onChange={setTypes}
+              aria-label="Wybierz typy wpisów do filtrowania"
             >
-              <ToggleButton id="tgl-1" value={1} variant="outline-primary">
+              <ToggleButton 
+                id="tgl-standard" 
+                value={1} 
+                variant="outline-primary"
+                aria-pressed={types.includes(1)}
+              >
                 Prace Standardowe
               </ToggleButton>
-              <ToggleButton id="tgl-2" value={2} variant="outline-primary">
+              <ToggleButton 
+                id="tgl-repair" 
+                value={2} 
+                variant="outline-primary"
+                aria-pressed={types.includes(2)}
+              >
                 Prace naprawcze
               </ToggleButton>
             </ToggleButtonGroup>
           </div>
-        </div>
+        </fieldset>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+        <Button variant="secondary" onClick={onHide} aria-label="Zamknij okno filtrowania">
           Zamknij
         </Button>
-        <Button variant="primary" onClick={handleApplyFilters}>
+        <Button variant="primary" onClick={handleApplyFilters} aria-label="Zastosuj filtry">
           Filtruj
         </Button>
       </Modal.Footer>

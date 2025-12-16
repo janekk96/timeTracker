@@ -15,8 +15,17 @@ function ProtectedElement({
 }: ProtectedElementProps) {
   const { uid } = useParams();
   const { user } = useContext(AuthContext) || {};
-  const loading = <div>Loading ...</div>;
-  const unauthorized = <div>Dostęp Nieautoryzowany</div>;
+  const loading = (
+    <div role="status" aria-live="polite" aria-busy="true">
+      <span>Ładowanie...</span>
+    </div>
+  );
+  const unauthorized = (
+    <div role="alert" aria-live="assertive">
+      <h1>Dostęp Nieautoryzowany</h1>
+      <p>Nie masz uprawnień do wyświetlenia tej strony.</p>
+    </div>
+  );
   let toRender = children;
   if (!user) {
     toRender = loading;

@@ -184,18 +184,26 @@ function User() {
           applyFilters={setFilters}
         />
         {(loadingProfile ? (
-          <Spinner animation="border" />
+          <div role="status" aria-live="polite">
+            <Spinner animation="border">
+              <span className="visually-hidden">Ładowanie profilu użytkownika...</span>
+            </Spinner>
+          </div>
         ) : (
           authUser?.role === "Admin"
         )) || user?.is_approved ? (
-          <div className="user-wrapper">
+          <article className="user-wrapper" aria-label="Panel użytkownika">
             <TopBar
               setAddEntryShow={setAddEntryShow}
               setFilteringDialogShow={setFilteringDialogShow}
             />
 
             {loadingProfile ? (
-              <Spinner animation="border" />
+              <div role="status" aria-live="polite">
+                <Spinner animation="border">
+                  <span className="visually-hidden">Ładowanie danych użytkownika...</span>
+                </Spinner>
+              </div>
             ) : (
               <UserHeader
                 authUser={authUser}
@@ -212,7 +220,7 @@ function User() {
               tableData={tableData}
               fileName={user?.username || ""}
             />
-          </div>
+          </article>
         ) : (
           <NotVerifiedUser />
         )}
@@ -232,29 +240,42 @@ function TopBar({ setAddEntryShow, setFilteringDialogShow }: TopBarProps) {
   const { user } = useContext(AuthContext) || {};
   const navigate = useNavigate();
   return (
-    <div className="top-bar">
-      <div className="d-flex gap-1">
+    <nav className="top-bar" aria-label="Pasek narzędzi">
+      <div className="d-flex gap-1" role="toolbar" aria-label="Akcje wpisów czasu">
         <Button
           variant="success"
           onClick={() => setAddEntryShow((prev) => !prev)}
+          aria-label="Dodaj nowy wpis czasu pracy"
         >
-          <FontAwesomeIcon icon={faPlus} />
+          <FontAwesomeIcon icon={faPlus} aria-hidden="true" />
         </Button>
-        <Button variant="success" onClick={() => setFilteringDialogShow(true)}>
-          <FontAwesomeIcon icon={faFilter} />
+        <Button 
+          variant="success" 
+          onClick={() => setFilteringDialogShow(true)}
+          aria-label="Filtruj wpisy czasu pracy"
+        >
+          <FontAwesomeIcon icon={faFilter} aria-hidden="true" />
         </Button>
       </div>
       {user?.role === "Admin" && (
-        <Button variant="secondary" onClick={() => navigate("/")}>
-          <FontAwesomeIcon icon={faArrowLeft} />
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate("/")}
+          aria-label="Wróć do listy użytkowników"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" />
         </Button>
       )}
       {user?.role === "User" && (
-        <Button variant="warning" onClick={() => supabase.auth.signOut()}>
-          <FontAwesomeIcon icon={faRightFromBracket} />
+        <Button 
+          variant="warning" 
+          onClick={() => supabase.auth.signOut()}
+          aria-label="Wyloguj się"
+        >
+          <FontAwesomeIcon icon={faRightFromBracket} aria-hidden="true" />
         </Button>
       )}
-    </div>
+    </nav>
   );
 }
 
@@ -279,6 +300,12 @@ function EntryRow({
       setEditShown(true);
     }
   };
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (user?.role === "Admin" && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      setEditShown(true);
+    }
+  };
   const handleClose = () => {
     setEditShown(false);
     reload();
@@ -293,7 +320,14 @@ function EntryRow({
         endTime={moment(end).toDate()}
         entrySelectedType={workhours_entry_type.id}
       />
-      <tr className={rowClass} onClick={handleRowClick}>
+      <tr 
+        className={rowClass} 
+        onClick={handleRowClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={user?.role === "Admin" ? 0 : undefined}
+        role={user?.role === "Admin" ? "button" : undefined}
+        aria-label={user?.role === "Admin" ? `Edytuj wpis z dnia ${moment(start).format("DD.MM.YYYY")}` : undefined}
+      >
         <td>{moment(start).format("DD.MM.YYYY")}</td>
         <td>{moment(start).format("HH:mm")}</td>
         <td>{moment(end).format("HH:mm")}</td>
@@ -310,20 +344,27 @@ function HoursTable({
   workTimeLoading,
 }: HoursTableProps) {
   return (
-    <div className="table-wrapper">
+    <div className="table-wrapper" role="region" aria-label="Tabela czasu pracy">
       <Table striped bordered hover className="user-table">
+        <caption className="visually-hidden">Wpisy czasu pracy użytkownika</caption>
         <thead>
           <tr>
-            <th>Dzień</th>
-            <th>Start</th>
-            <th>Koniec</th>
-            <th>Czas trwania</th>
-            <th>Typ</th>
+            <th scope="col">Dzień</th>
+            <th scope="col">Start</th>
+            <th scope="col">Koniec</th>
+            <th scope="col">Czas trwania</th>
+            <th scope="col">Typ</th>
           </tr>
         </thead>
         <tbody>
           {workTimeLoading ? (
-            <Spinner animation="border" />
+            <tr>
+              <td colSpan={5}>
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Ładowanie wpisów czasu pracy...</span>
+                </Spinner>
+              </td>
+            </tr>
           ) : (
             workTime.map((entry) => (
               <EntryRow
@@ -339,7 +380,7 @@ function HoursTable({
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={4}>Łącznie</td>
+            <th scope="row" colSpan={4}>Łącznie</th>
             <td>
               {`${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`}
             </td>
@@ -358,7 +399,7 @@ interface UserHeaderProps {
 
 function UserHeader({ authUser, handleUserApproval, user }: UserHeaderProps) {
   return (
-    <>
+    <header>
       <h1 className="d-flex align-items-center gap-2">
         {user?.full_name}
         {!user?.is_approved && (
@@ -366,6 +407,8 @@ function UserHeader({ authUser, handleUserApproval, user }: UserHeaderProps) {
             title="Użytkownik nie został jeszcze zaakceptowany przez administratora i nie może dodawać wpisów czasu pracy"
             icon={faExclamationCircle}
             style={{ color: "red" }}
+            aria-label="Uwaga: użytkownik niezatwierdzony"
+            role="img"
           />
         )}
       </h1>
@@ -374,18 +417,19 @@ function UserHeader({ authUser, handleUserApproval, user }: UserHeaderProps) {
           className="mb-2 d-flex align-items-center gap-1 justify-content-center"
           variant="success"
           onClick={handleUserApproval}
+          aria-label={`Zatwierdź użytkownika ${user?.full_name}`}
         >
-          <FontAwesomeIcon icon={faCheck} />
+          <FontAwesomeIcon icon={faCheck} aria-hidden="true" />
           Zatwierdź użytkownika
         </Button>
       )}
-    </>
+    </header>
   );
 }
 
 function NotVerifiedUser() {
   return (
-    <Card>
+    <Card role="alert" aria-live="polite">
       <Card.Body>
         <div className="d-flex flex-column flex-wrap justify-content-center align-items-center">
           <h1>Użytkownik nie został jeszcze zaakceptowany</h1>
@@ -396,8 +440,9 @@ function NotVerifiedUser() {
           <Button
             onClick={() => supabase.auth.signOut()}
             className="d-flex align-items-center gap-1"
+            aria-label="Wyloguj się z aplikacji"
           >
-            <FontAwesomeIcon icon={faRightFromBracket} />
+            <FontAwesomeIcon icon={faRightFromBracket} aria-hidden="true" />
             Wyloguj
           </Button>
         </div>

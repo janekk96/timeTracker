@@ -57,78 +57,91 @@ function AddTimeEntryDialog({ show, onHide }: AddTimeEntryDialogProps) {
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} aria-labelledby="add-entry-modal-title">
       <Modal.Header closeButton>
-        <Modal.Title>Dodaj wpis</Modal.Title>
+        <Modal.Title id="add-entry-modal-title">Dodaj wpis</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div className="form-group">
-          <label htmlFor="date">Data</label>
-          <input
-            type="date"
-            className="form-control"
-            id="date"
-            value={moment(date).format("YYYY-MM-DD")}
-            onChange={(e) => setDate(new Date(e.target.value))}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="hours">Start</label>
-          <input
-            type="time"
-            className="form-control"
-            id="hours"
-            value={start}
-            onChange={(e) => {
-              setStart(e.target.value);
-            }}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="hours">Koniec</label>
-          <input
-            type="time"
-            className="form-control"
-            id="hours"
-            value={end}
-            onChange={(e) => {
-              setEnd(e.target.value);
-            }}
-          />
-        </div>
-        <div className="form-group d-flex gap-1 align-items-center pt-3">
-          <Dropdown>
-            <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic">
-              {TimeEntryTypes[selectedType]}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {Object.entries(TimeEntryTypes).map(([key, value]) => (
-                <Dropdown.Item
-                  key={key}
-                  onClick={() => setSelectedType(parseInt(key))}
-                >
-                  {value}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
+        <form id="add-entry-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+          <div className="form-group">
+            <label htmlFor="add-entry-date">Data</label>
+            <input
+              type="date"
+              className="form-control"
+              id="add-entry-date"
+              value={moment(date).format("YYYY-MM-DD")}
+              onChange={(e) => setDate(new Date(e.target.value))}
+              aria-required="true"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="add-entry-start">Start</label>
+            <input
+              type="time"
+              className="form-control"
+              id="add-entry-start"
+              value={start}
+              onChange={(e) => {
+                setStart(e.target.value);
+              }}
+              aria-required="true"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="add-entry-end">Koniec</label>
+            <input
+              type="time"
+              className="form-control"
+              id="add-entry-end"
+              value={end}
+              onChange={(e) => {
+                setEnd(e.target.value);
+              }}
+              aria-required="true"
+            />
+          </div>
+          <div className="form-group d-flex gap-1 align-items-center pt-3">
+            <label id="entry-type-label" className="visually-hidden">Typ wpisu</label>
+            <Dropdown>
+              <Dropdown.Toggle 
+                variant="outline-secondary" 
+                id="add-entry-type-dropdown"
+                aria-labelledby="entry-type-label"
+              >
+                {TimeEntryTypes[selectedType]}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {Object.entries(TimeEntryTypes).map(([key, value]) => (
+                  <Dropdown.Item
+                    key={key}
+                    onClick={() => setSelectedType(parseInt(key))}
+                    aria-selected={selectedType === parseInt(key)}
+                  >
+                    {value}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+        </form>
       </Modal.Body>
       <Modal.Footer>
         <button
           type="button"
           className="btn btn-secondary d-flex gap-1 align-items-center"
           onClick={onHide}
+          aria-label="Anuluj dodawanie wpisu"
         >
-          <FontAwesomeIcon icon={faTimes} />
+          <FontAwesomeIcon icon={faTimes} aria-hidden="true" />
           Anuluj
         </button>
         <button
-          type="button"
+          type="submit"
+          form="add-entry-form"
           className="btn btn-primary d-flex gap-1 align-items-center"
-          onClick={handleSave}
+          aria-label="Zapisz nowy wpis czasu pracy"
         >
-          <FontAwesomeIcon icon={faSave} />
+          <FontAwesomeIcon icon={faSave} aria-hidden="true" />
           Zapisz
         </button>
       </Modal.Footer>

@@ -81,53 +81,64 @@ function AddUserDialog({ show, onHide }: AddUserDialogProps) {
     }
   };
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} aria-labelledby="add-user-modal-title">
       <Modal.Header closeButton>
-        <Modal.Title>Dodaj użytkownika</Modal.Title>
+        <Modal.Title id="add-user-modal-title">Dodaj użytkownika</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form>
+        <form id="add-user-form" onSubmit={(e) => { e.preventDefault(); addUser(); }}>
           <div className="form-group">
-            <label htmlFor="username">Imię</label>
+            <label htmlFor="add-user-firstname">Imię</label>
             <input
               type="text"
               className="form-control"
-              id="username"
+              id="add-user-firstname"
+              autoComplete="given-name"
+              aria-required="true"
               onChange={(e) => setFirstName(e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="username">Nazwisko</label>
+            <label htmlFor="add-user-lastname">Nazwisko</label>
             <input
               type="text"
               className="form-control"
-              id="username"
+              id="add-user-lastname"
+              autoComplete="family-name"
+              aria-required="true"
               onChange={(e) => setLastName(e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="username">Email</label>
+            <label htmlFor="add-user-email">Email</label>
             <input
-              type="text"
+              type="email"
               className="form-control"
-              id="username"
+              id="add-user-email"
+              autoComplete="email"
+              aria-required="true"
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Hasło</label>
+            <label htmlFor="add-user-password">Hasło</label>
             <input
               type="password"
               className="form-control"
-              id="password"
+              id="add-user-password"
+              autoComplete="new-password"
+              aria-required="true"
+              aria-describedby="add-user-password-hint"
               onChange={(e) => setPassword(e.target.value)}
             />
+            <small id="add-user-password-hint" className="form-text text-muted">Hasło musi mieć minimum 6 znaków</small>
           </div>
           <div className="form-group">
-            <label htmlFor="role">Rola</label>
+            <label htmlFor="add-user-role">Rola</label>
             <select
               className="form-control"
-              id="role"
+              id="add-user-role"
+              aria-required="true"
               onChange={(e) => setRole(e.target.value as userRoles)}
             >
               {Object.values(userRoles).map((role) => (
@@ -144,16 +155,18 @@ function AddUserDialog({ show, onHide }: AddUserDialogProps) {
           type="button"
           className="btn btn-secondary d-flex gap-1 align-items-center"
           onClick={onHide}
+          aria-label="Zamknij okno dodawania użytkownika"
         >
-          <FontAwesomeIcon icon={faTimes} />
+          <FontAwesomeIcon icon={faTimes} aria-hidden="true" />
           Zamknij
         </button>
         <button
-          type="button"
+          type="submit"
+          form="add-user-form"
           className="btn btn-primary d-flex gap-1 align-items-center"
-          onClick={addUser}
+          aria-label="Dodaj nowego użytkownika"
         >
-          <FontAwesomeIcon icon={faPlus} />
+          <FontAwesomeIcon icon={faPlus} aria-hidden="true" />
           Dodaj
         </button>
       </Modal.Footer>

@@ -48,18 +48,32 @@ function UserList({ filter, setUnverifiedCount }: UserListProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profiles]);
 
-  if (loading) return <p>Loading profiles...</p>;
+  if (loading)
+    return (
+      <p role="status" aria-live="polite">
+        Ładowanie profili...
+      </p>
+    );
 
   return (
-    <div className={styles.cards}>
+    <div className={styles.cards} role="list" aria-label="Lista użytkowników">
       {profiles.filter(filter.callback).map((profile) => (
         <Card
           key={profile.id}
           className={styles.userCard}
           onClick={() => navigate(`/${profile.id}`)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate(`/${profile.id}`);
+            }
+          }}
+          tabIndex={0}
+          role="listitem"
+          aria-label={`Użytkownik ${profile.full_name}, nazwa: ${profile.username}, rola: ${profile.role}`}
         >
           <Card.Body className="text-center">
-            <Card.Title className={styles.userFullName}>
+            <Card.Title as="h2" className={styles.userFullName}>
               {profile.full_name}
             </Card.Title>
             <Card.Subtitle className={styles.userName}>
@@ -102,13 +116,19 @@ function Home() {
     <PageWrapper>
       <div className={styles.homeWrapper}>
         <h1>Lista Użytkowników</h1>
-        <ButtonGroup className="w-100">
+        <ButtonGroup
+          className="w-100"
+          role="group"
+          aria-label="Filtrowanie użytkowników"
+        >
           {Object.entries(PROFILE_FILTERS_CALLBACKS).map(([key, value]) => (
             <Button
               key={key}
               onClick={() => setProfileFilter(key as ProfileFilterKey)}
-              variant={`outline-secondary ${key === profileFilter && "active"}`}
+              variant={`secondary ${key === profileFilter && "active"}`}
               size="sm"
+              aria-pressed={key === profileFilter}
+              aria-label={value.label(unverifiedCount)}
             >
               {value.label(unverifiedCount)}
             </Button>
@@ -122,8 +142,10 @@ function Home() {
           className="mt-2"
           variant="warning"
           onClick={() => supabase.auth.signOut()}
+          aria-label="Wyloguj się z aplikacji"
         >
-          <FontAwesomeIcon icon={faArrowRightFromBracket} /> Wyloguj
+          <FontAwesomeIcon icon={faArrowRightFromBracket} aria-hidden="true" />{" "}
+          Wyloguj
         </Button>
       </div>
     </PageWrapper>

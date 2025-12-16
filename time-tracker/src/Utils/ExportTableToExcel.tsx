@@ -33,8 +33,13 @@ const ExportTableToExcel = ({
   };
 
   return (
-    <Button onClick={exportToExcel} className="mt-auto">
-      <FontAwesomeIcon icon={faDownload} />
+    <Button 
+      onClick={exportToExcel} 
+      className="mt-auto"
+      aria-label={`Pobierz raport czasu pracy jako plik Excel: ${fileName}.xlsx`}
+    >
+      <FontAwesomeIcon icon={faDownload} aria-hidden="true" />
+      <span className="visually-hidden">Pobierz Excel</span>
     </Button>
   );
 };
