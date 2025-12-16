@@ -94,7 +94,13 @@ function EditTimeEntryDialog({
         <Modal.Title id="edit-entry-modal-title">Edytuj wpis</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form id="edit-entry-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+        <form
+          id="edit-entry-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+        >
           <div className="form-group">
             <label htmlFor="edit-entry-date">Data</label>
             <input
@@ -133,10 +139,12 @@ function EditTimeEntryDialog({
             />
           </div>
           <div className="form-group d-flex gap-1 align-items-center pt-3">
-            <label id="edit-entry-type-label" className="visually-hidden">Typ wpisu</label>
+            <label id="edit-entry-type-label" className="visually-hidden">
+              Typ wpisu
+            </label>
             <Dropdown>
-              <Dropdown.Toggle 
-                variant="outline-secondary" 
+              <Dropdown.Toggle
+                variant="outline-secondary"
                 id="edit-entry-type-dropdown"
                 aria-labelledby="edit-entry-type-label"
               >

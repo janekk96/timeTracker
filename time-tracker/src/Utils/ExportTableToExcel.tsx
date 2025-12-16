@@ -33,8 +33,8 @@ const ExportTableToExcel = ({
   };
 
   return (
-    <Button 
-      onClick={exportToExcel} 
+    <Button
+      onClick={exportToExcel}
       className="mt-auto"
       aria-label={`Pobierz raport czasu pracy jako plik Excel: ${fileName}.xlsx`}
     >

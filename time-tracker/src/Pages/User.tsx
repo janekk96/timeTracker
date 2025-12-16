@@ -186,7 +186,9 @@ function User() {
         {(loadingProfile ? (
           <div role="status" aria-live="polite">
             <Spinner animation="border">
-              <span className="visually-hidden">Ładowanie profilu użytkownika...</span>
+              <span className="visually-hidden">
+                Ładowanie profilu użytkownika...
+              </span>
             </Spinner>
           </div>
         ) : (
@@ -201,7 +203,9 @@ function User() {
             {loadingProfile ? (
               <div role="status" aria-live="polite">
                 <Spinner animation="border">
-                  <span className="visually-hidden">Ładowanie danych użytkownika...</span>
+                  <span className="visually-hidden">
+                    Ładowanie danych użytkownika...
+                  </span>
                 </Spinner>
               </div>
             ) : (
@@ -241,7 +245,11 @@ function TopBar({ setAddEntryShow, setFilteringDialogShow }: TopBarProps) {
   const navigate = useNavigate();
   return (
     <nav className="top-bar" aria-label="Pasek narzędzi">
-      <div className="d-flex gap-1" role="toolbar" aria-label="Akcje wpisów czasu">
+      <div
+        className="d-flex gap-1"
+        role="toolbar"
+        aria-label="Akcje wpisów czasu"
+      >
         <Button
           variant="success"
           onClick={() => setAddEntryShow((prev) => !prev)}
@@ -249,8 +257,8 @@ function TopBar({ setAddEntryShow, setFilteringDialogShow }: TopBarProps) {
         >
           <FontAwesomeIcon icon={faPlus} aria-hidden="true" />
         </Button>
-        <Button 
-          variant="success" 
+        <Button
+          variant="success"
           onClick={() => setFilteringDialogShow(true)}
           aria-label="Filtruj wpisy czasu pracy"
         >
@@ -258,8 +266,8 @@ function TopBar({ setAddEntryShow, setFilteringDialogShow }: TopBarProps) {
         </Button>
       </div>
       {user?.role === "Admin" && (
-        <Button 
-          variant="secondary" 
+        <Button
+          variant="secondary"
           onClick={() => navigate("/")}
           aria-label="Wróć do listy użytkowników"
         >
@@ -267,8 +275,8 @@ function TopBar({ setAddEntryShow, setFilteringDialogShow }: TopBarProps) {
         </Button>
       )}
       {user?.role === "User" && (
-        <Button 
-          variant="warning" 
+        <Button
+          variant="warning"
           onClick={() => supabase.auth.signOut()}
           aria-label="Wyloguj się"
         >
@@ -301,7 +309,7 @@ function EntryRow({
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (user?.role === "Admin" && (e.key === 'Enter' || e.key === ' ')) {
+    if (user?.role === "Admin" && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
       setEditShown(true);
     }
@@ -320,13 +328,17 @@ function EntryRow({
         endTime={moment(end).toDate()}
         entrySelectedType={workhours_entry_type.id}
       />
-      <tr 
-        className={rowClass} 
+      <tr
+        className={rowClass}
         onClick={handleRowClick}
         onKeyDown={handleKeyDown}
         tabIndex={user?.role === "Admin" ? 0 : undefined}
         role={user?.role === "Admin" ? "button" : undefined}
-        aria-label={user?.role === "Admin" ? `Edytuj wpis z dnia ${moment(start).format("DD.MM.YYYY")}` : undefined}
+        aria-label={
+          user?.role === "Admin"
+            ? `Edytuj wpis z dnia ${moment(start).format("DD.MM.YYYY")}`
+            : undefined
+        }
       >
         <td>{moment(start).format("DD.MM.YYYY")}</td>
         <td>{moment(start).format("HH:mm")}</td>
@@ -344,9 +356,15 @@ function HoursTable({
   workTimeLoading,
 }: HoursTableProps) {
   return (
-    <div className="table-wrapper" role="region" aria-label="Tabela czasu pracy">
+    <div
+      className="table-wrapper"
+      role="region"
+      aria-label="Tabela czasu pracy"
+    >
       <Table striped bordered hover className="user-table">
-        <caption className="visually-hidden">Wpisy czasu pracy użytkownika</caption>
+        <caption className="visually-hidden">
+          Wpisy czasu pracy użytkownika
+        </caption>
         <thead>
           <tr>
             <th scope="col">Dzień</th>
@@ -361,7 +379,9 @@ function HoursTable({
             <tr>
               <td colSpan={5}>
                 <Spinner animation="border" role="status">
-                  <span className="visually-hidden">Ładowanie wpisów czasu pracy...</span>
+                  <span className="visually-hidden">
+                    Ładowanie wpisów czasu pracy...
+                  </span>
                 </Spinner>
               </td>
             </tr>
@@ -380,7 +400,9 @@ function HoursTable({
         </tbody>
         <tfoot>
           <tr>
-            <th scope="row" colSpan={4}>Łącznie</th>
+            <th scope="row" colSpan={4}>
+              Łącznie
+            </th>
             <td>
               {`${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`}
             </td>

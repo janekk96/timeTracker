@@ -62,7 +62,13 @@ function AddTimeEntryDialog({ show, onHide }: AddTimeEntryDialogProps) {
         <Modal.Title id="add-entry-modal-title">Dodaj wpis</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form id="add-entry-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+        <form
+          id="add-entry-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+        >
           <div className="form-group">
             <label htmlFor="add-entry-date">Data</label>
             <input
@@ -101,10 +107,12 @@ function AddTimeEntryDialog({ show, onHide }: AddTimeEntryDialogProps) {
             />
           </div>
           <div className="form-group d-flex gap-1 align-items-center pt-3">
-            <label id="entry-type-label" className="visually-hidden">Typ wpisu</label>
+            <label id="entry-type-label" className="visually-hidden">
+              Typ wpisu
+            </label>
             <Dropdown>
-              <Dropdown.Toggle 
-                variant="outline-secondary" 
+              <Dropdown.Toggle
+                variant="outline-secondary"
                 id="add-entry-type-dropdown"
                 aria-labelledby="entry-type-label"
               >

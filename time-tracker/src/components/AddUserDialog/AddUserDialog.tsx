@@ -86,7 +86,13 @@ function AddUserDialog({ show, onHide }: AddUserDialogProps) {
         <Modal.Title id="add-user-modal-title">Dodaj użytkownika</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form id="add-user-form" onSubmit={(e) => { e.preventDefault(); addUser(); }}>
+        <form
+          id="add-user-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            addUser();
+          }}
+        >
           <div className="form-group">
             <label htmlFor="add-user-firstname">Imię</label>
             <input
@@ -131,7 +137,9 @@ function AddUserDialog({ show, onHide }: AddUserDialogProps) {
               aria-describedby="add-user-password-hint"
               onChange={(e) => setPassword(e.target.value)}
             />
-            <small id="add-user-password-hint" className="form-text text-muted">Hasło musi mieć minimum 6 znaków</small>
+            <small id="add-user-password-hint" className="form-text text-muted">
+              Hasło musi mieć minimum 6 znaków
+            </small>
           </div>
           <div className="form-group">
             <label htmlFor="add-user-role">Rola</label>

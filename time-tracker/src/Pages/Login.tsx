@@ -78,7 +78,12 @@ function Login() {
   };
 
   return (
-    <main className={styles.wrapper} id="main-content" role="main" aria-label="Strona logowania">
+    <main
+      className={styles.wrapper}
+      id="main-content"
+      role="main"
+      aria-label="Strona logowania"
+    >
       <Card className={styles.loginCard}>
         <Card.Header className={styles.loginCardHeader}>
           <h1 id="login-title">Zaloguj się</h1>
@@ -101,7 +106,14 @@ function Login() {
           />
         )}
         {activeView === Views.REGISTER && (
-          <form className="d-flex flex-column gap-2" aria-labelledby="login-title" onSubmit={(e) => { e.preventDefault(); addUser(); }}>
+          <form
+            className="d-flex flex-column gap-2"
+            aria-labelledby="login-title"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addUser();
+            }}
+          >
             <div className="form-group">
               <label htmlFor="register-firstname">Imię</label>
               <input
@@ -146,7 +158,9 @@ function Login() {
                 aria-describedby="password-hint"
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <small id="password-hint" className="form-text text-muted">Hasło musi mieć minimum 6 znaków</small>
+              <small id="password-hint" className="form-text text-muted">
+                Hasło musi mieć minimum 6 znaków
+              </small>
             </div>
             <Button className="mt-3" variant="primary" type="submit">
               Zarejestruj
@@ -162,7 +176,11 @@ function Login() {
               )
             }
             className={styles.modeSwitch}
-            aria-label={activeView === Views.LOGIN ? "Przejdź do rejestracji" : "Przejdź do logowania"}
+            aria-label={
+              activeView === Views.LOGIN
+                ? "Przejdź do rejestracji"
+                : "Przejdź do logowania"
+            }
           >
             {activeView === Views.LOGIN && "Nie masz konta? Zarejestruj się"}
             {activeView === Views.REGISTER && "Masz konto? Zaloguj się"}
